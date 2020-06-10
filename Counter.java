@@ -20,7 +20,7 @@ public class Counter {
 				
 
 				//img = ImageProcessor.exposureTransform(img, 1.8);
-				img = ImageProcessor.grayScaleTransform(img);
+				//img = ImageProcessor.grayScaleTransform(img);
 				//img = ImageProcessor.autoContrast(img, 0.05);
 				//img = ImageProcessor.thresholdTransform(img, 60);
 				//img = ImageProcessor.exposureTransform(img, .5);
@@ -42,7 +42,27 @@ public class Counter {
 				//img = ImageProcessor.guassianBlur( ImageProcessor.grayScaleTransform(img));
 				//img = ImageProcessor.sharpen(img);
 
+				//img = ImageProcessor.BWweightedMedianFilter(img);
+
+				//Pipline to treshold.
+				//Pre proccessing cleanup
+				img = ImageProcessor.autoContrast(img, 0.05);
+				img = ImageProcessor.guassianBlur(ImageProcessor.grayScaleTransform(img));
 				img = ImageProcessor.BWweightedMedianFilter(img);
+
+				//Getting ready for thresholding.
+				img = ImageProcessor.LaplaceSharpen(img);
+				img = ImageProcessor.gammaTransform(img, 2.5);
+				img = ImageProcessor.BWweightedMedianFilter(img);
+				//img = ImageProcessor.guassianBlur(ImageProcessor.grayScaleTransform(img));
+
+				//Thresholding
+				img = ImageProcessor.thresholdTransform(img, 30);
+
+				//Post proccessing cleanup.
+				img = ImageProcessor.BWweightedMedianFilter(img);
+				//img = ImageProcessor.BWweightedMedianFilter(img);
+				//img = ImageProcessor.BWweightedMedianFilter(img);
 
 
 				// write image

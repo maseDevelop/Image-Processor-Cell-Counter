@@ -63,11 +63,11 @@ public class ImageProcessor {
             cumulativeHistogram[i] = currVal;
         }
 
-        for (int i = 0; i < cumulativeHistogram.length; i++) {
-            System.out.println("index:" + i + " " + cumulativeHistogram[i]);
-        }
+        //for (int i = 0; i < cumulativeHistogram.length; i++) {
+        //    System.out.println("index:" + i + " " + cumulativeHistogram[i]);
+        //}
 
-        System.out.println(thresholdSLow);
+        //System.out.println(thresholdSLow);
 
         // From the cumulative histgram getting the diereved alow
         for (int i = 0; i < cumulativeHistogram.length; i++) {
@@ -77,7 +77,7 @@ public class ImageProcessor {
             }
         }
 
-        System.out.println(low);
+        //System.out.println(low);
 
         // From the cumulative histgram getting the diereved ahigh
         for (int i = cumulativeHistogram.length - 1; i >= 0; i--) {
@@ -87,7 +87,7 @@ public class ImageProcessor {
             }
         }
 
-        System.out.println(high);
+        //System.out.println(high);
 
         // Mapping values to increase pixel value ranges the image
         for (int v = 0; v < height; v++) {
