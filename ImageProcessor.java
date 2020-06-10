@@ -1,5 +1,7 @@
 import java.awt.image.*;
 import java.util.ArrayList;
+
+
 import java.util.*;
 
 public class ImageProcessor {
@@ -293,14 +295,19 @@ public class ImageProcessor {
         int height = input.getHeight();
         int width = input.getWidth();
         int weightValue;
-        int pixelValue;
-        int a, r, g, b, p;
+        int b, p;
         int filterSize = 3;
         int medianValue;
         int newHotspotValue;
         int counter = 0;
 
-        int[] weightsArray = { 1, 2, 1 ,  2, 3, 2 ,  1, 2, 1  };
+        //int[] weightsArray = { 1, 2, 1 ,  2, 3, 2 ,  1, 2, 1  };
+
+        //int[] weightsArray = {1, 4, 7, 4, 1, 4, 16, 26, 16, 4, 7, 26, 41, 26, 7, 4, 16, 26, 16, 4, 1, 4, 7, 4, 1};
+
+        int[] weightsArray = {0,0,1,2,1,0,0,0,3,13,22,13,3,0,1,13,59,97,59,13,1,2,22,97,159,97,22,2,1,13,59,97,59,13,1,0,3,13,22,13,3,0,0,0,1,2,1,0,0};
+
+    
         ArrayList<Integer> filterNums = new ArrayList<>();
 
         BufferedImage copy = deepCopy(input);
@@ -316,19 +323,15 @@ public class ImageProcessor {
                         p = input.getRGB(u + i, v + j);
                         b = p & 0xff;
 
-                        //weightValue = weightsArray[counter];
-                        weightValue = 3;
-                        System.out.println(counter);
-                        counter++;
+                        weightValue = weightsArray[counter];
 
+                        counter++;
                         // Adding to the filternums list as per specificed by the weights array
                         for (int j2 = 1; j2 <= weightValue; j2++) {
                             filterNums.add(b);
                         }
-                        
                     }
                 }
-                System.out.println("yoooooo");
                 counter = 0;
                 // Sorting the list
                 Collections.sort(filterNums);
@@ -341,14 +344,90 @@ public class ImageProcessor {
                 p = (newHotspotValue << 24) | (newHotspotValue << 16) | (newHotspotValue << 8) | newHotspotValue;
 
                 copy.setRGB(u, v, p);
-
                 filterNums.clear();
             }
         }
         return copy;
     }
 
+    public static BufferedImage LaplaceSharpen(BufferedImage input){
+            int height = input.getHeight();
+            int width = input.getWidth();
+            int filterPosition;
+            int b, p, inputDirValue, inputderValueBlue;
+            int filterSize = 1;
+            int value = 0;
+            int newHotspotValue;
+            int counter = 0;
 
+            int[] filter = {1,1,1,1,-8,1,1,1,1};
+
+            BufferedImage inputDerivative = deepCopy(input);
+
+            for (int v = filterSize; v <= height - 2 - filterSize; v++) {
+                for (int u = filterSize; u <= width - 2 - filterSize; u++) {
+
+                    // compute filter result for position (u,v):
+                    for (int i = - filterSize; i <= filterSize; i++) {           
+                        for (int j =  - filterSize; j <= filterSize; j++) {
+                            p = input.getRGB(u + i, v + j);
+                            b = p & 0xff;
+    
+                         
+                            filterPosition = filter[counter];
+                            counter ++;
+
+                            value += (b * filterPosition);
+                        }
+                    }
+                    counter = 0;
+
+                    if(value < 0){
+                        value =0;
+                    }
+
+                    p = (value << 24) | (value << 16) | (value << 8) | value;
+    
+                    inputDerivative.setRGB(u, v, p);
+
+                    value =0;
+                }
+            }
+
+            //Subtract second diverative from the orginal image
+            for (int v = 0; v < height; v++) {
+                for (int u = 0; u < width; u++) {
+    
+                    p = input.getRGB(u, v);
+                    inputDirValue = inputDerivative.getRGB(u, v);
+
+                    b = p & 0xff;
+                    inputderValueBlue = inputDirValue & 0xff;
+
+                    b = b - inputderValueBlue;//Subtracing values
+
+                    if(b > 255){
+                        b = 255;
+                    }
+                    else if(b < 0){
+                        b = 0;
+                    }
+    
+                    // replace RGB value with avg
+                    p = (b << 24) | (b << 16) | (b << 8) | b;
+    
+                    input.setRGB(u, v, p);
+                }
+            }
+
+            return input;
+    }
+
+    //public static BufferedImage dilate(BufferedImage input){
+
+    //}
+
+    //Produces a full copy of a Buffered Image 
     private static BufferedImage deepCopy(BufferedImage img) {
         ColorModel cm = img.getColorModel();
         boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
