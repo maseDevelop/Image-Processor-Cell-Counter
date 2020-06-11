@@ -1,9 +1,15 @@
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.awt.image.*;
 import javax.imageio.ImageIO;
 
+
 public class Counter {
+
+	private static ArrayList<BufferedImage> imageList;
+	private static ArrayList<String> processList;
+
 	public static void main(String args[]) throws IOException {
 		try {
 			// Reading in file name form the commmand line
@@ -15,55 +21,43 @@ public class Counter {
 				// reading image
 				File f = new File(fileName);
 				BufferedImage img = ImageIO.read(f);
-				// reading image
+
+				int cellCount;
 
 				
-
-				//img = ImageProcessor.exposureTransform(img, 1.8);
-				//img = ImageProcessor.grayScaleTransform(img);
-				//img = ImageProcessor.autoContrast(img, 0.05);
-				//img = ImageProcessor.thresholdTransform(img, 60);
-				//img = ImageProcessor.exposureTransform(img, .5);
-				//img = ImageProcessor.gammaTransform(img,1.9);
-				//img = ImageProcessor.grayScaleTransform(img);
-				//img = ImageProcessor.invertTransform(img);
-				//img = ImageProcessor.guassianBlur( ImageProcessor.grayScaleTransform(img));
-				//img = ImageProcessor.sharpen(ImageProcessor.guassianBlur( ImageProcessor.grayScaleTransform(img)));
-				// = ImageProcessor.exposureTransform(img, 1.1);
-				//img = ImageProcessor.invertTransform(img);
-
-				//img = ImageProcessor.sharpen(ImageProcessor.guassianBlur( ImageProcessor.grayScaleTransform(img)));
-				//ImageProcessor.BWweightedMedianFilter(img2);
+				imageList = new ArrayList<>();
+				processList = new ArrayList<>();
 				
-				//img = ImageProcessor.gammaTransform(img, 1.8);
+				addGuiData(img,"Base Image");
 
-				//img = ImageProcessor.thresholdTransform(img, 230);
-				//img = ImageProcessor.guassianBlur( ImageProcessor.grayScaleTransform(img));
-				//img = ImageProcessor.guassianBlur( ImageProcessor.grayScaleTransform(img));
-				//img = ImageProcessor.sharpen(img);
 
-				//img = ImageProcessor.BWweightedMedianFilter(img);
-
-				//Pipline to treshold.
 				//Pre proccessing cleanup
 				img = ImageProcessor.autoContrast(img, 0.05);
+				
 				img = ImageProcessor.guassianBlur(ImageProcessor.grayScaleTransform(img));
 				img = ImageProcessor.BWweightedMedianFilter(img);
+				addGuiData(img,"blur");
 
 				//Getting ready for thresholding.
 				img = ImageProcessor.LaplaceSharpen(img);
 				img = ImageProcessor.gammaTransform(img, 2.5);
 				img = ImageProcessor.BWweightedMedianFilter(img);
-				//img = ImageProcessor.guassianBlur(ImageProcessor.grayScaleTransform(img));
+				img = ImageProcessor.guassianBlur(img);
+				addGuiData(img,"Weighed Median");
 
 				//Thresholding
 				img = ImageProcessor.thresholdTransform(img, 30);
+				addGuiData(img,"Threshold Transform");
 
 				//Post proccessing cleanup.
 				img = ImageProcessor.BWweightedMedianFilter(img);
-				//img = ImageProcessor.BWweightedMedianFilter(img);
-				//img = ImageProcessor.BWweightedMedianFilter(img);
 
+				img = ImageProcessor.binaryTransform(img);
+
+				cellCount = ImageProcessor.regionLabel(img);
+				addGuiData(img,"Final");
+
+				new CellCounterGUI(imageList, processList, cellCount);
 
 				// write image
 				f = new File(fileType[0] + "_output." + fileType[1] );
@@ -78,4 +72,18 @@ public class Counter {
 			System.out.println();
 		}
 	}
+
+	private static void addGuiData(BufferedImage newImage, String processName){
+
+		imageList.add(deepCopy(newImage));
+		processList.add(processName);
+	}
+
+	   // Produces a full copy of a Buffered Image
+	   private static BufferedImage deepCopy(BufferedImage img) {
+        ColorModel cm = img.getColorModel();
+        boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
+        WritableRaster raster = img.copyData(null);
+        return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
+    }
 }
