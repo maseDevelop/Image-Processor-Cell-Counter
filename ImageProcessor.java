@@ -1,7 +1,6 @@
 import java.awt.image.*;
 import java.util.ArrayList;
-
-
+import java.awt.Point;
 import java.util.*;
 
 public class ImageProcessor {
@@ -63,12 +62,6 @@ public class ImageProcessor {
             cumulativeHistogram[i] = currVal;
         }
 
-        //for (int i = 0; i < cumulativeHistogram.length; i++) {
-        //    System.out.println("index:" + i + " " + cumulativeHistogram[i]);
-        //}
-
-        //System.out.println(thresholdSLow);
-
         // From the cumulative histgram getting the diereved alow
         for (int i = 0; i < cumulativeHistogram.length; i++) {
             if (cumulativeHistogram[i] >= thresholdSLow) {
@@ -77,8 +70,6 @@ public class ImageProcessor {
             }
         }
 
-        //System.out.println(low);
-
         // From the cumulative histgram getting the diereved ahigh
         for (int i = cumulativeHistogram.length - 1; i >= 0; i--) {
             if (cumulativeHistogram[i] > 0 && cumulativeHistogram[i] <= thresholdSHigh) {
@@ -86,8 +77,6 @@ public class ImageProcessor {
                 break;// Exiting the loop
             }
         }
-
-        //System.out.println(high);
 
         // Mapping values to increase pixel value ranges the image
         for (int v = 0; v < height; v++) {
@@ -173,8 +162,6 @@ public class ImageProcessor {
                 r = Math.pow((r / 255), gammaValue) * 255;
                 g = Math.pow((g / 255), gammaValue) * 255;
                 b = Math.pow((b / 255), gammaValue) * 255;
-
-                // System.out.println(b);
 
                 double[] arr = { a, r, g, b };
 
@@ -301,25 +288,19 @@ public class ImageProcessor {
         int newHotspotValue;
         int counter = 0;
 
-        //int[] weightsArray = { 1, 2, 1 ,  2, 3, 2 ,  1, 2, 1  };
+        int[] weightsArray = { 0, 0, 1, 2, 1, 0, 0, 0, 3, 13, 22, 13, 3, 0, 1, 13, 59, 97, 59, 13, 1, 2, 22, 97, 159,
+                97, 22, 2, 1, 13, 59, 97, 59, 13, 1, 0, 3, 13, 22, 13, 3, 0, 0, 0, 1, 2, 1, 0, 0 };
 
-        //int[] weightsArray = {1, 4, 7, 4, 1, 4, 16, 26, 16, 4, 7, 26, 41, 26, 7, 4, 16, 26, 16, 4, 1, 4, 7, 4, 1};
-
-        int[] weightsArray = {0,0,1,2,1,0,0,0,3,13,22,13,3,0,1,13,59,97,59,13,1,2,22,97,159,97,22,2,1,13,59,97,59,13,1,0,3,13,22,13,3,0,0,0,1,2,1,0,0};
-
-    
         ArrayList<Integer> filterNums = new ArrayList<>();
 
         BufferedImage copy = deepCopy(input);
 
-
         for (int v = filterSize; v <= height - 2 - filterSize; v++) {
             for (int u = filterSize; u <= width - 2 - filterSize; u++) {
 
-                
                 // compute filter result for position (u,v):
-                for (int i = - filterSize; i <= filterSize; i++) {           
-                    for (int j =  - filterSize; j <= filterSize; j++) {
+                for (int i = -filterSize; i <= filterSize; i++) {
+                    for (int j = -filterSize; j <= filterSize; j++) {
                         p = input.getRGB(u + i, v + j);
                         b = p & 0xff;
 
@@ -336,10 +317,9 @@ public class ImageProcessor {
                 // Sorting the list
                 Collections.sort(filterNums);
                 medianValue = filterNums.size() / 2;
-                medianValue++;
 
-                //Replacing hotspot with new pixel 
-                newHotspotValue = filterNums.get(medianValue);   
+                // Replacing hotspot with new pixel
+                newHotspotValue = filterNums.get(medianValue);
 
                 p = (newHotspotValue << 24) | (newHotspotValue << 16) | (newHotspotValue << 8) | newHotspotValue;
 
@@ -350,88 +330,255 @@ public class ImageProcessor {
         return copy;
     }
 
-    public static BufferedImage LaplaceSharpen(BufferedImage input){
-            int height = input.getHeight();
-            int width = input.getWidth();
-            int filterPosition;
-            int b, p, inputDirValue, inputderValueBlue;
-            int filterSize = 1;
-            int value = 0;
-            int newHotspotValue;
-            int counter = 0;
+    public static BufferedImage LaplaceSharpen(BufferedImage input) {
+        int height = input.getHeight();
+        int width = input.getWidth();
+        int filterPosition;
+        int b, p, inputDirValue, inputderValueBlue;
+        int filterSize = 1;
+        int value = 0;
+        int counter = 0;
 
-            int[] filter = {1,1,1,1,-8,1,1,1,1};
+        int[] filter = { 1, 1, 1, 1, -8, 1, 1, 1, 1 };
 
-            BufferedImage inputDerivative = deepCopy(input);
+        BufferedImage inputDerivative = deepCopy(input);
 
-            for (int v = filterSize; v <= height - 2 - filterSize; v++) {
-                for (int u = filterSize; u <= width - 2 - filterSize; u++) {
+        for (int v = filterSize; v <= height - 2 - filterSize; v++) {
+            for (int u = filterSize; u <= width - 2 - filterSize; u++) {
 
-                    // compute filter result for position (u,v):
-                    for (int i = - filterSize; i <= filterSize; i++) {           
-                        for (int j =  - filterSize; j <= filterSize; j++) {
+                // compute filter result for position (u,v):
+                for (int i = -filterSize; i <= filterSize; i++) {
+                    for (int j = -filterSize; j <= filterSize; j++) {
+                        p = input.getRGB(u + i, v + j);
+                        b = p & 0xff;
+
+                        filterPosition = filter[counter];
+                        counter++;
+
+                        value += (b * filterPosition);
+                    }
+                }
+                counter = 0;
+
+                if (value < 0) {
+                    value = 0;
+                }
+
+                p = (value << 24) | (value << 16) | (value << 8) | value;
+
+                inputDerivative.setRGB(u, v, p);
+
+                value = 0;
+            }
+        }
+
+        // Subtract second diverative from the orginal image
+        for (int v = 0; v < height; v++) {
+            for (int u = 0; u < width; u++) {
+
+                p = input.getRGB(u, v);
+                inputDirValue = inputDerivative.getRGB(u, v);
+
+                b = p & 0xff;
+                inputderValueBlue = inputDirValue & 0xff;
+
+                b = b - inputderValueBlue;// Subtracing values
+
+                if (b > 255) {
+                    b = 255;
+                } else if (b < 0) {
+                    b = 0;
+                }
+
+                // replace RGB value with avg
+                p = (b << 24) | (b << 16) | (b << 8) | b;
+
+                input.setRGB(u, v, p);
+            }
+        }
+
+        return input;
+    }
+
+    // BWerode takes an image where Background Pixels are White and foreground
+    // pixels are white.
+    public static BufferedImage BWerode(BufferedImage input) {
+        int height = input.getHeight();
+        int width = input.getWidth();
+        int filterPosition;
+        int b, p, copyPixel, copyValueBlue;
+        int filterboarderLength = 2;
+        int value = 0;
+        int newHotspotValue;
+        int counter = 0;
+
+        BufferedImage copy = deepCopy(input);
+
+        // int[] structuingElement = { 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        // 1, 1, 1, 1, 0, 1, 1, 1, 0 }; // Hotspot at 12
+        int[] structuingElement = { 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0 };
+        // int[] structuingElement = {0,1,0,1,1,1,0,1,0};
+
+        for (int v = filterboarderLength; v <= height - 2 - filterboarderLength; v++) {
+            for (int u = filterboarderLength; u <= width - 2 - filterboarderLength; u++) {
+
+                p = input.getRGB(u, v);
+                b = p & 0xff;
+
+                // if pixel is White
+                if (b == 255) {
+
+                    for (int i = -filterboarderLength; i <= filterboarderLength; i++) {
+                        for (int j = -filterboarderLength; j <= filterboarderLength; j++) {
                             p = input.getRGB(u + i, v + j);
                             b = p & 0xff;
-    
-                         
-                            filterPosition = filter[counter];
-                            counter ++;
 
-                            value += (b * filterPosition);
+                            filterPosition = structuingElement[counter];
+                            counter++;
+
+                            // If on copy image the value is 0 (black), and on sturcturing element value is
+                            // one then invert pixel on copy image
+                            if (b == 0 && filterPosition == 1) {
+                                copyPixel = (255 << 24) | (255 << 16) | (255 << 8) | 255;
+                                copy.setRGB(u + i, v + j, copyPixel);
+                            }
                         }
                     }
                     counter = 0;
 
-                    if(value < 0){
-                        value =0;
-                    }
-
-                    p = (value << 24) | (value << 16) | (value << 8) | value;
-    
-                    inputDerivative.setRGB(u, v, p);
-
-                    value =0;
                 }
             }
+        }
 
-            //Subtract second diverative from the orginal image
-            for (int v = 0; v < height; v++) {
-                for (int u = 0; u < width; u++) {
-    
-                    p = input.getRGB(u, v);
-                    inputDirValue = inputDerivative.getRGB(u, v);
-
-                    b = p & 0xff;
-                    inputderValueBlue = inputDirValue & 0xff;
-
-                    b = b - inputderValueBlue;//Subtracing values
-
-                    if(b > 255){
-                        b = 255;
-                    }
-                    else if(b < 0){
-                        b = 0;
-                    }
-    
-                    // replace RGB value with avg
-                    p = (b << 24) | (b << 16) | (b << 8) | b;
-    
-                    input.setRGB(u, v, p);
-                }
-            }
-
-            return input;
+        return copy;
     }
 
-    //public static BufferedImage dilate(BufferedImage input){
+    public static BufferedImage BWdilate(BufferedImage input) {
+        return invertTransform(BWerode(invertTransform(input)));
+    }
 
-    //}
+    public static BufferedImage openTransform(BufferedImage input, int iteration) {
 
-    //Produces a full copy of a Buffered Image 
+        // Preforming Erosion
+        for (int i = 0; i < iteration; i++) {
+            input = BWerode(input);
+        }
+
+        // preforming Dilation
+        for (int i = 0; i < iteration; i++) {
+            input = BWdilate(input);
+        }
+
+        return input;
+    }
+
+    public static BufferedImage closeTransform(BufferedImage input, int iteration) {
+
+        // Preforming Erosion
+        for (int i = 0; i < iteration; i++) {
+            input = BWdilate(input);
+        }
+
+        // preforming Dilation
+        for (int i = 0; i < iteration; i++) {
+            input = BWerode(input);
+        }
+
+        return input;
+    }
+
+    public static int regionLabel(BufferedImage input) {
+
+        int labelCount = 2;
+
+        int width = input.getWidth();
+        int height = input.getHeight();
+
+        for (int v = 0; v < height; v++) {
+            for (int u = 0; u < width; u++) {
+
+                int p = input.getRGB(u, v);
+                int b = p & 0xff;
+
+                if (b == 1) {
+                    floodFill(input, u, v, labelCount);
+                    labelCount++;
+                }
+            }
+        }
+       
+        return labelCount-2;
+    }
+
+    private static BufferedImage floodFill(BufferedImage input, int u, int v, int label) {
+
+        Deque<Point> stack = new LinkedList<>();
+        int width = input.getWidth();
+        int height = input.getHeight();
+        int p,b,finalValue;
+
+        stack.push(new Point(u, v));
+
+        while (!stack.isEmpty()) {
+            Point point = stack.pop();
+            int x = (int)point.getX();
+            int y = (int)point.getY();
+
+            if ((x >= 0) && (x < width) && (y >= 0) && (y < height)) {
+
+                p = input.getRGB(x,y);
+                b = p & 0xff;
+
+                if(b == 1){
+                    finalValue = (255 << 24) | (28 << 16) | (104 << 8) | label;
+                    input.setRGB(x, y, finalValue);
+                    stack.push(new Point(x + 1, y));
+                    stack.push(new Point(x, y + 1));
+                    stack.push(new Point(x, y - 1));
+                    stack.push(new Point(x - 1, y));
+                } 
+            }
+        }
+        return input;
+    }
+
+    public static BufferedImage binaryTransform(BufferedImage input) {
+        // Performs a threshold transformation on the image
+
+        int width = input.getWidth();
+        int height = input.getHeight();
+
+        int p,b;
+
+        // convert to binary
+        for (int v = 0; v < height; v++) {
+            for (int u = 0; u < width; u++) {
+
+                p = input.getRGB(u, v);
+                b = p & 0xff;
+
+                if (b >= 127) {
+                    b = 1;
+                } else {
+                    b = 0;
+                }
+
+                // replace RGB value with avg
+                p = (b << 24) | (b << 16) | (b << 8) | b;
+
+                input.setRGB(u, v, p);
+            }
+        }
+
+        return input;
+    }
+
+
+    // Produces a full copy of a Buffered Image
     private static BufferedImage deepCopy(BufferedImage img) {
         ColorModel cm = img.getColorModel();
         boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
         WritableRaster raster = img.copyData(null);
         return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
-       }
+    }
 }
