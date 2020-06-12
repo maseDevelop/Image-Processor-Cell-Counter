@@ -45,7 +45,7 @@ public class Counter {
 				img = ImageProcessor.LaplaceSharpen(img);
 				addGuiData(img,"LaplaceSharpen");
 
-				img = ImageProcessor.gammaTransform(img, 3);
+				img = ImageProcessor.gammaTransform(img, 4);
 				addGuiData(img,"Gamma");
 
 				img = ImageProcessor.BWweightedMedianFilter(img);
@@ -59,21 +59,15 @@ public class Counter {
 				addGuiData(img,"Threshold Transform");
 
 				//Post proccessing cleanup.
-				//img = ImageProcessor.BWweightedMedianFilter(img);
-				//addGuiData(img,"WeightMedFilter");
-
-				img = ImageProcessor.openTransform(img, 3);
-				addGuiData(img, "Open 1x");
+				img = ImageProcessor.openTransform(img, 4);
+				addGuiData(img, "Open 3x");
 
 				img = ImageProcessor.closeTransform(img, 3);
-				addGuiData(img, "Close 2x");
-
-				img = ImageProcessor.openTransform(img, 2);
-				addGuiData(img, "Open 2x");
+				addGuiData(img, "Close 3x");
 
 				img = ImageProcessor.binaryTransform(img);
-				//addGuiData(img,"Binary Transform");
 
+				//Labelling
 				cellCount = ImageProcessor.regionLabel(img);
 				addGuiData(img,"Region Count");
 
