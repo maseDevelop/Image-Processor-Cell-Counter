@@ -14,24 +14,21 @@ public class Counter {
 		try {
 			// Reading in file name form the commmand line
 			if (args.length == 1) {
+				//Variable declaration.
+				int cellCount;
+				imageList = new ArrayList<>();
+				processList = new ArrayList<>();
 				String fileName = args[0];
 				String[] fileType = fileName.split("\\.");
 
 
-				// reading image
+				//Get the base image.
 				File f = new File(fileName);
-				BufferedImage img = ImageIO.read(f);
-
-				int cellCount;
-
-				
-				imageList = new ArrayList<>();
-				processList = new ArrayList<>();
-				
+				BufferedImage img = ImageIO.read(f);				
 				addGuiData(img,"Base Image");
 
 
-				//Pre proccessing cleanup
+				//Making image easier to process.
 				img = ImageProcessor.autoContrast(img, 0.08);
 				addGuiData(img,"AutoContrast");
 
@@ -41,7 +38,8 @@ public class Counter {
 				img = ImageProcessor.BWweightedMedianFilter(img);
 				addGuiData(img,"WeightMedFilter");
 
-				//Getting ready for thresholding.
+
+				//Getting ready for thresholding, with cleanup and intensity change.
 				img = ImageProcessor.LaplaceSharpen(img);
 				addGuiData(img,"LaplaceSharpen");
 
@@ -54,9 +52,11 @@ public class Counter {
 				img = ImageProcessor.guassianBlur(img);
 				addGuiData(img,"Guassian Blur");
 
+
 				//Thresholding
 				img = ImageProcessor.thresholdTransform(img, 30);
 				addGuiData(img,"Threshold Transform");
+
 
 				//Post proccessing cleanup.
 				img = ImageProcessor.openTransform(img, 4);
@@ -65,12 +65,13 @@ public class Counter {
 				img = ImageProcessor.closeTransform(img, 3);
 				addGuiData(img, "Close 3x");
 
-				img = ImageProcessor.binaryTransform(img);
 
-				//Labelling
-				cellCount = ImageProcessor.regionLabel(img);
+				//Labelling and cellcount.
+				cellCount = ImageProcessor.regionLabel(ImageProcessor.binaryTransform(img));
 				addGuiData(img,"Region Count");
 
+
+				//Displaying out GUI
 				new CellCounterGUI(imageList, processList, cellCount);
 
 				// write image
@@ -88,7 +89,6 @@ public class Counter {
 	}
 
 	private static void addGuiData(BufferedImage newImage, String processName){
-
 		imageList.add(ImageProcessor.deepCopy(newImage));
 		processList.add(processName);
 	}
