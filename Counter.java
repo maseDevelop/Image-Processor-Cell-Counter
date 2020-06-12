@@ -57,7 +57,6 @@ public class Counter {
 				img = ImageProcessor.thresholdTransform(img, 30);
 				addGuiData(img,"Threshold Transform");
 
-
 				//Post proccessing cleanup.
 				img = ImageProcessor.openTransform(img, 4);
 				addGuiData(img, "Open 3x");
@@ -65,10 +64,11 @@ public class Counter {
 				img = ImageProcessor.closeTransform(img, 3);
 				addGuiData(img, "Close 3x");
 
-
+				
 				//Labelling and cellcount.
 				cellCount = ImageProcessor.regionLabel(ImageProcessor.binaryTransform(img));
 				addGuiData(img,"Region Count");
+				
 
 
 				//Displaying out GUI

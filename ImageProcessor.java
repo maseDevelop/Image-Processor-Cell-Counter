@@ -372,30 +372,32 @@ public class ImageProcessor {
             }
         }
 
+        input = subtractImages(input, inputDerivative);
+
         // Subtract second diverative from the orginal image
-        for (int v = 0; v < height; v++) {
-            for (int u = 0; u < width; u++) {
+        //for (int v = 0; v < height; v++) {
+        //    for (int u = 0; u < width; u++) {
 
-                p = input.getRGB(u, v);
-                inputDirValue = inputDerivative.getRGB(u, v);
+        //        p = input.getRGB(u, v);
+        //        inputDirValue = inputDerivative.getRGB(u, v);
 
-                b = p & 0xff;
-                inputderValueBlue = inputDirValue & 0xff;
+        //        b = p & 0xff;
+        //       inputderValueBlue = inputDirValue & 0xff;
 
-                b = b - inputderValueBlue;// Subtracing values
+        //        b = b - inputderValueBlue;// Subtracing values
 
-                if (b > 255) {
-                    b = 255;
-                } else if (b < 0) {
-                    b = 0;
-                }
+        //        if (b > 255) {
+        //            b = 255;
+        //        } else if (b < 0) {
+        //            b = 0;
+        //        }
 
-                // replace RGB value with avg
-                p = (b << 24) | (b << 16) | (b << 8) | b;
+        //       // replace RGB value with avg
+        //       p = (b << 24) | (b << 16) | (b << 8) | b;
 
-                input.setRGB(u, v, p);
-            }
-        }
+        //       input.setRGB(u, v, p);
+        //    }
+        //}
 
         return input;
     }
@@ -570,6 +572,92 @@ public class ImageProcessor {
         }
 
         return input;
+    }
+
+    public static BufferedImage outlineTransform(BufferedImage input){
+        BufferedImage copy = deepCopy(input);
+
+        copy = meanTransform(copy);
+
+        copy = subtractImages(copy, input);
+
+        copy = thresholdTransform(copy, 1);
+
+        copy = invertTransform(copy);
+
+        return copy;
+    }
+
+    public static BufferedImage subtractImages(BufferedImage original, BufferedImage subtract){
+        int p, b, width, height, subP, subB;
+        width = original.getWidth();
+        height = original.getHeight();
+
+
+        // Subtract second diverative from the orginal image
+        for (int v = 0; v < height; v++) {
+            for (int u = 0; u < width; u++) {
+
+                p = original.getRGB(u, v);
+                subP = subtract.getRGB(u, v);
+
+                b = p & 0xff;
+                subB = subP & 0xff;
+
+                b = b - subB;// Subtracing values
+
+                if (b > 255) {
+                    b = 255;
+                } else if (b < 0) {
+                    b = 0;
+                }
+
+                // replace RGB value with avg
+                p = (b << 24) | (b << 16) | (b << 8) | b;
+
+                original.setRGB(u, v, p);
+            }
+        }
+        return original;
+    }
+
+    public static BufferedImage meanTransform(BufferedImage input){
+        // Only works on pixels were R = G = B i.e. it is a gray scale image
+        int height = input.getHeight();
+        int width = input.getWidth();
+        int b, p;
+        int filterSize = 1;
+        int meanValue = 0;
+        int counter = 0;
+
+        int[] weightsArray = {1,1,1,1,1,1,1,1,1};
+
+        BufferedImage copy = deepCopy(input);
+
+        for (int v = filterSize; v <= height - 2 - filterSize; v++) {
+            for (int u = filterSize; u <= width - 2 - filterSize; u++) {
+
+                // compute filter result for position (u,v):
+                for (int i = -filterSize; i <= filterSize; i++) {
+                    for (int j = -filterSize; j <= filterSize; j++) {
+                        p = input.getRGB(u + i, v + j);
+                        b = p & 0xff;
+                        meanValue += b;
+                        counter++;
+                    }
+                }
+
+                meanValue = meanValue / 9;
+                counter = 0;
+                
+
+                p = (meanValue << 24) | (meanValue << 16) | (meanValue << 8) | meanValue;
+
+                copy.setRGB(u, v, p);
+                meanValue = 0;
+            }
+        }
+        return copy;
     }
 
 
