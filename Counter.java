@@ -32,30 +32,50 @@ public class Counter {
 
 
 				//Pre proccessing cleanup
-				img = ImageProcessor.autoContrast(img, 0.05);
-				
+				img = ImageProcessor.autoContrast(img, 0.08);
+				addGuiData(img,"AutoContrast");
+
 				img = ImageProcessor.guassianBlur(ImageProcessor.grayScaleTransform(img));
+				addGuiData(img,"GuassianBlur");
+
 				img = ImageProcessor.BWweightedMedianFilter(img);
-				addGuiData(img,"blur");
+				addGuiData(img,"WeightMedFilter");
 
 				//Getting ready for thresholding.
 				img = ImageProcessor.LaplaceSharpen(img);
-				img = ImageProcessor.gammaTransform(img, 2.5);
+				addGuiData(img,"LaplaceSharpen");
+
+				img = ImageProcessor.gammaTransform(img, 3);
+				addGuiData(img,"Gamma");
+
 				img = ImageProcessor.BWweightedMedianFilter(img);
+				addGuiData(img,"WeightMedFilter");
+
 				img = ImageProcessor.guassianBlur(img);
-				addGuiData(img,"Weighed Median");
+				addGuiData(img,"Guassian Blur");
 
 				//Thresholding
 				img = ImageProcessor.thresholdTransform(img, 30);
 				addGuiData(img,"Threshold Transform");
 
 				//Post proccessing cleanup.
-				img = ImageProcessor.BWweightedMedianFilter(img);
+				//img = ImageProcessor.BWweightedMedianFilter(img);
+				//addGuiData(img,"WeightMedFilter");
+
+				img = ImageProcessor.openTransform(img, 3);
+				addGuiData(img, "Open 1x");
+
+				img = ImageProcessor.closeTransform(img, 3);
+				addGuiData(img, "Close 2x");
+
+				img = ImageProcessor.openTransform(img, 2);
+				addGuiData(img, "Open 2x");
 
 				img = ImageProcessor.binaryTransform(img);
+				//addGuiData(img,"Binary Transform");
 
 				cellCount = ImageProcessor.regionLabel(img);
-				addGuiData(img,"Final");
+				addGuiData(img,"Region Count");
 
 				new CellCounterGUI(imageList, processList, cellCount);
 
@@ -75,15 +95,7 @@ public class Counter {
 
 	private static void addGuiData(BufferedImage newImage, String processName){
 
-		imageList.add(deepCopy(newImage));
+		imageList.add(ImageProcessor.deepCopy(newImage));
 		processList.add(processName);
 	}
-
-	   // Produces a full copy of a Buffered Image
-	   private static BufferedImage deepCopy(BufferedImage img) {
-        ColorModel cm = img.getColorModel();
-        boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
-        WritableRaster raster = img.copyData(null);
-        return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
-    }
 }

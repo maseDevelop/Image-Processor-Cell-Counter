@@ -407,17 +407,16 @@ public class ImageProcessor {
         int width = input.getWidth();
         int filterPosition;
         int b, p, copyPixel, copyValueBlue;
-        int filterboarderLength = 2;
+        int filterboarderLength = 1;
         int value = 0;
         int newHotspotValue;
         int counter = 0;
 
         BufferedImage copy = deepCopy(input);
 
-        // int[] structuingElement = { 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        // 1, 1, 1, 1, 0, 1, 1, 1, 0 }; // Hotspot at 12
-        int[] structuingElement = { 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0 };
-        // int[] structuingElement = {0,1,0,1,1,1,0,1,0};
+        //int[] structuingElement = { 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0 }; // Hotspot at 12
+        //int[] structuingElement = { 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0 };
+        int[] structuingElement = {0,1,0,1,1,1,0,1,0};
 
         for (int v = filterboarderLength; v <= height - 2 - filterboarderLength; v++) {
             for (int u = filterboarderLength; u <= width - 2 - filterboarderLength; u++) {
@@ -426,7 +425,7 @@ public class ImageProcessor {
                 b = p & 0xff;
 
                 // if pixel is White
-                if (b == 255) {
+                if (b == 0) {
 
                     for (int i = -filterboarderLength; i <= filterboarderLength; i++) {
                         for (int j = -filterboarderLength; j <= filterboarderLength; j++) {
@@ -438,8 +437,8 @@ public class ImageProcessor {
 
                             // If on copy image the value is 0 (black), and on sturcturing element value is
                             // one then invert pixel on copy image
-                            if (b == 0 && filterPosition == 1) {
-                                copyPixel = (255 << 24) | (255 << 16) | (255 << 8) | 255;
+                            if (b == 255 && filterPosition == 1) {
+                                copyPixel = (0 << 24) | (0 << 16) | (0 << 8) | 0;
                                 copy.setRGB(u + i, v + j, copyPixel);
                             }
                         }
@@ -575,7 +574,7 @@ public class ImageProcessor {
 
 
     // Produces a full copy of a Buffered Image
-    private static BufferedImage deepCopy(BufferedImage img) {
+    public static BufferedImage deepCopy(BufferedImage img) {
         ColorModel cm = img.getColorModel();
         boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
         WritableRaster raster = img.copyData(null);
