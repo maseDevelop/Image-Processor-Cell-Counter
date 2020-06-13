@@ -5,6 +5,7 @@ import java.awt.image.*;
 import javax.imageio.ImageIO;
 
 
+
 public class Counter {
 
 	private static ArrayList<BufferedImage> imageList;
@@ -14,23 +15,31 @@ public class Counter {
 		try {
 			// Reading in file name form the commmand line
 			if (args.length == 1) {
-				//Variable declaration.
-				int cellCount;
-				imageList = new ArrayList<>();
-				processList = new ArrayList<>();
 				String fileName = args[0];
 				String[] fileType = fileName.split("\\.");
 
 
-				//Get the base image.
+				// reading image
 				File f = new File(fileName);
-				BufferedImage img = ImageIO.read(f);				
-				addGuiData(img,"Base Image");
+				BufferedImage img = ImageIO.read(f);
+
+				int cellCount;
+				
+				imageList = new ArrayList<>();
+				processList = new ArrayList<>();
+
+				CellCounterLoadingScreen loadingScreen = new CellCounterLoadingScreen(); //Loading Screen 
+				
+				addGuiData(img,"Base Image");//Orgininal Image
 
 
+				
 				//Making image easier to process.
-				img = ImageProcessor.autoContrast(img, 0.08);
+				img = ImageProcessor.autoContrast(img, 0.05);
 				addGuiData(img,"AutoContrast");
+
+				img = ImageProcessor.exposureTransform(img, 2);
+				addGuiData(img,"Brighten");
 
 				img = ImageProcessor.guassianBlur(ImageProcessor.grayScaleTransform(img));
 				addGuiData(img,"GuassianBlur");
@@ -40,10 +49,10 @@ public class Counter {
 
 
 				//Getting ready for thresholding, with cleanup and intensity change.
-				img = ImageProcessor.LaplaceSharpen(img);
+				img = ImageProcessor.laplaceSharpen(img);
 				addGuiData(img,"LaplaceSharpen");
 
-				img = ImageProcessor.gammaTransform(img, 4);
+				img = ImageProcessor.gammaTransform(img, 3);
 				addGuiData(img,"Gamma");
 
 				img = ImageProcessor.BWweightedMedianFilter(img);
@@ -52,27 +61,37 @@ public class Counter {
 				img = ImageProcessor.guassianBlur(img);
 				addGuiData(img,"Guassian Blur");
 
+				img = ImageProcessor.laplaceSharpen(img);
+				addGuiData(img,"LaplaceSharpen");
+
+				img = ImageProcessor.BWweightedMedianFilter(img);
+				addGuiData(img,"WeightMedFilter");
+
+		
 
 				//Thresholding
-				img = ImageProcessor.thresholdTransform(img, 30);
+				img = ImageProcessor.thresholdTransform(img, 110);
 				addGuiData(img,"Threshold Transform");
 
 				//Post proccessing cleanup.
-				img = ImageProcessor.openTransform(img, 4);
+				img = ImageProcessor.openTransform(img, 3);
 				addGuiData(img, "Open 3x");
 
-				img = ImageProcessor.closeTransform(img, 3);
-				addGuiData(img, "Close 3x");
+				img = ImageProcessor.closeTransform(img, 4);
+				addGuiData(img, "Close 4x");
 
 				
 				//Labelling and cellcount.
-				cellCount = ImageProcessor.regionLabel(ImageProcessor.binaryTransform(img));
-				addGuiData(img,"Region Count");
+				cellCount = ImageProcessor.cellLabel(img);
+				addGuiData(img,"Output");
 				
 
 
-				//Displaying out GUI
-				new CellCounterGUI(imageList, processList, cellCount);
+				loadingScreen.closeLoading();//Closing Loading Screen
+
+				//Intialising GUI 
+			    new CellCounterGUI(imageList, processList, cellCount);
+
 
 				// write image
 				f = new File(fileType[0] + "_output." + fileType[1] );
