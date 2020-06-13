@@ -41,3 +41,5 @@
 				//Labelling
 				cellCount = ImageProcessor.regionLabel(img);
 				addGuiData(img,"Region Count");
+				
+				*Add in a check to region counting to increase by one once reaching 255.
