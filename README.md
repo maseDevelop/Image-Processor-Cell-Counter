@@ -26,6 +26,8 @@
 				//Thresholding
 				img = ImageProcessor.thresholdTransform(img, 30);
 				addGuiData(img,"Threshold Transform");
+				
+				*Need to have a check for region counting for 255, 
 
 				//Post proccessing cleanup.
 				img = ImageProcessor.openTransform(img, 4);
