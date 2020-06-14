@@ -1,3 +1,6 @@
+//Name: Connor Jones, Mason Elliott
+//ID: 1351782, 1347257
+
 import java.awt.*;
 import javax.swing.*;
 

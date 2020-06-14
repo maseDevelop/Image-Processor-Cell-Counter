@@ -1,3 +1,6 @@
+//Name: Connor Jones, Mason Elliott
+//ID: 1351782, 1347257
+
 import java.awt.image.*;
 import java.util.ArrayList;
 import java.awt.Point;
@@ -26,6 +29,40 @@ public class ImageProcessor {
 
         BufferedImageOp op = new ConvolveOp(new Kernel(3, 3, filter), ConvolveOp.EDGE_NO_OP, null);
         return op.filter(input, null);
+    }
+
+    //Preforms a mean tranform
+    public static BufferedImage meanFilter(BufferedImage input){
+        // Only works on pixels were R = G = B i.e. it is a gray scale image
+        int height = input.getHeight();
+        int width = input.getWidth();
+        int b, p;
+        int filterSize = 1;
+        int meanValue = 0;
+
+        BufferedImage copy = deepCopy(input);
+
+        for (int v = filterSize; v <= height - 2 - filterSize; v++) {
+            for (int u = filterSize; u <= width - 2 - filterSize; u++) {
+
+                // compute filter result for position (u,v):
+                for (int i = -filterSize; i <= filterSize; i++) {
+                    for (int j = -filterSize; j <= filterSize; j++) {
+                        p = input.getRGB(u + i, v + j);
+                        b = p & 0xff;
+                        meanValue += b;
+                    }
+                }
+
+                meanValue = meanValue / 9; //Scaling the pixel value as to not brighten the image
+
+                p = (meanValue << 24) | (meanValue << 16) | (meanValue << 8) | meanValue;
+
+                copy.setRGB(u, v, p);
+                meanValue = 0;
+            }
+        }
+        return copy;
     }
 
     //Covolves a weighted Medium filter to remove noise - Only works on grayscale images
@@ -445,72 +482,11 @@ public class ImageProcessor {
     }
 
     //End Morphological Operations---------------------------------------------------
-   
-
-
-    
-    
-    
-    //Counts regions and labels them - only works on a binary image - Used to count cells in the image
-    /*public static int regionLabel(BufferedImage input) {
-
-        int labelCount = 2;
-
-        int width = input.getWidth();
-        int height = input.getHeight();
-
-        for (int v = 0; v < height; v++) {
-            for (int u = 0; u < width; u++) {
-
-                int p = input.getRGB(u, v);
-                int b = p & 0xff;
-
-                if (b == 1) {
-                    floodFill(input, u, v, labelCount);
-                    labelCount++;
-                }
-            }
-        }
-       
-        return labelCount-2;
-    }
-
-    private static BufferedImage floodFill(BufferedImage input, int u, int v, int label) {
-
-        Deque<Point> stack = new LinkedList<>();
-        int width = input.getWidth();
-        int height = input.getHeight();
-        int p,b,finalValue;
-
-        stack.push(new Point(u, v));
-
-        while (!stack.isEmpty()) {
-            Point point = stack.pop();
-            int x = (int)point.getX();
-            int y = (int)point.getY();
-
-            if ((x >= 0) && (x < width) && (y >= 0) && (y < height)) {
-
-                p = input.getRGB(x,y);
-                b = p & 0xff;
-
-                if(b == 1){
-                    finalValue = (255 << 24) | (28 << 16) | (104 << 8) | label;
-                    input.setRGB(x, y, finalValue);
-                    stack.push(new Point(x + 1, y));
-                    stack.push(new Point(x, y + 1));
-                    stack.push(new Point(x, y - 1));
-                    stack.push(new Point(x - 1, y));
-                } 
-            }
-        }
-        return input;
-    }*/
 
     //Counts regions and labels them - must use a binary image - Used to count cells in the image
     public static int cellLabel(BufferedImage input) {
 
-        int labelCount = 2;
+        int labelCount = 0;
 
         int width = input.getWidth();
         int height = input.getHeight();
@@ -528,8 +504,7 @@ public class ImageProcessor {
                 }
             }
         }
-       
-        return labelCount-2;
+        return labelCount;
     }
 
     //Preforms foodfill DFS version - on a given starting pixel u,v
@@ -575,41 +550,10 @@ public class ImageProcessor {
     }
 
     //Preforms a Binary Transformation
-    /*public static BufferedImage binaryTransform(BufferedImage input) {
-       
-
-        int width = input.getWidth();
-        int height = input.getHeight();
-
-        int p,b;
-
-        // convert to binary
-        for (int v = 0; v < height; v++) {
-            for (int u = 0; u < width; u++) {
-
-                p = input.getRGB(u, v);
-                b = p & 0xff;
-
-                if (b >= 127) {
-                    b = 1;
-                } else {
-                    b = 0;
-                }
-
-                // replace RGB value with avg
-                p = (b << 24) | (b << 16) | (b << 8) | b;
-
-                input.setRGB(u, v, p);
-            }
-        }
-
-        return input;
-    }*/
-
     public static BufferedImage outlineTransform(BufferedImage input){
         BufferedImage copy = deepCopy(input);
 
-        copy = meanTransform(copy);
+        copy = meanFilter(copy);
 
         copy = subtractImages(copy, input);
 
@@ -651,41 +595,6 @@ public class ImageProcessor {
             }
         }
         return original;
-    }
-
-
-    //Preforms a mean tranform
-    public static BufferedImage meanTransform(BufferedImage input){
-        // Only works on pixels were R = G = B i.e. it is a gray scale image
-        int height = input.getHeight();
-        int width = input.getWidth();
-        int b, p;
-        int filterSize = 1;
-        int meanValue = 0;
-
-        BufferedImage copy = deepCopy(input);
-
-        for (int v = filterSize; v <= height - 2 - filterSize; v++) {
-            for (int u = filterSize; u <= width - 2 - filterSize; u++) {
-
-                // compute filter result for position (u,v):
-                for (int i = -filterSize; i <= filterSize; i++) {
-                    for (int j = -filterSize; j <= filterSize; j++) {
-                        p = input.getRGB(u + i, v + j);
-                        b = p & 0xff;
-                        meanValue += b;
-                    }
-                }
-
-                meanValue = meanValue / 9; //Scaling the pixel value as to not brighten the image
-
-                p = (meanValue << 24) | (meanValue << 16) | (meanValue << 8) | meanValue;
-
-                copy.setRGB(u, v, p);
-                meanValue = 0;
-            }
-        }
-        return copy;
     }
 
 

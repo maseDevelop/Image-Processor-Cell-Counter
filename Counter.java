@@ -1,3 +1,6 @@
+//Name: Connor Jones, Mason Elliott
+//ID: 1351782, 1347257
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
