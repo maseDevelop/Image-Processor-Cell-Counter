@@ -2,7 +2,7 @@
 
 Images at each point in the pipline can be displayed by clicking on correspoding processing technique in the GUI
 
-Processing Pipeline
+Processing Pipeline ->
 
 -Auto Constrasting
 
