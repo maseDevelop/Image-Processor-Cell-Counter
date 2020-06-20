@@ -1,8 +1,12 @@
-**Cell Counter**
+# Cell Counter
+
+Program was complete as part of an assignment and taught me alot about image processing and Convolutional operations. The program aims to count the number of cells in a black and white image. 
+
+Images sourced from www.cellimagelibrary.org
 
 Images at each point in the pipline can be displayed by clicking on correspoding processing technique in the GUI
 
-Processing Pipeline ->
+**Processing Pipeline ->**
 
 -Auto Constrasting
 
